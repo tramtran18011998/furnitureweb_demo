@@ -15,6 +15,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.web.HttpMediaTypeNotAcceptableException;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -59,28 +60,60 @@ public class EmployeeController {
 //        return new ResponseEntity<>(employee, HttpStatus.CREATED);
 //    }
 
-    @PostMapping("/employee")
-    public  ResponseEntity<Employee> login(@Valid @RequestBody Employee employee){
-        employee.setPassword(passwordEncoder.encode(employee.getPassword()));
-        Role userRole = roleRepository.findByName(RoleName.ROLE_EMPLOYEE)
-                .orElseThrow(() -> new AppException("User Role not set."));
+//    @PostMapping("/employee")
+//    public  ResponseEntity<Employee> login(@Valid @RequestBody Employee employee){
+//        employee.setPassword(passwordEncoder.encode(employee.getPassword()));
+//        Role userRole = roleRepository.findByName(RoleName.ROLE_EMPLOYEE)
+//                .orElseThrow(() -> new AppException("User Role not set."));
+//
+//        employee.setRoles(Collections.singleton(userRole));
+//
+//        employeeService.save(employee);
+//        return new ResponseEntity<>(employee, HttpStatus.CREATED);
+//    }
+//
+//    @PostMapping("/employee/admin")
+//    public  ResponseEntity<Employee> createAdmin(@Valid @RequestBody Employee employee){
+//        employee.setPassword(passwordEncoder.encode(employee.getPassword()));
+//        Role userRole = roleRepository.findByName(RoleName.ROLE_ADMIN)
+//                .orElseThrow(() -> new AppException("User Role not set."));
+//
+//        employee.setRoles(Collections.singleton(userRole));
+//
+//        employeeService.save(employee);
+//        return new ResponseEntity<>(employee, HttpStatus.CREATED);
+//    }
+@PostMapping(value = "/employee", produces = MediaType.IMAGE_PNG_VALUE)
+public  ResponseEntity<Employee> createEmployee(@Valid @ModelAttribute  Employee employee, @RequestParam("file") MultipartFile file) throws IOException {
+    employee.setPassword(passwordEncoder.encode(employee.getPassword()));
+    Role userRole = roleRepository.findByName(RoleName.ROLE_EMPLOYEE)
+            .orElseThrow(() -> new AppException("User Role not set."));
 
-        employee.setRoles(Collections.singleton(userRole));
 
-        employeeService.save(employee);
-        return new ResponseEntity<>(employee, HttpStatus.CREATED);
-    }
+    employee.setRoles(Collections.singleton(userRole));
+    employee.setAvatar(employeeService.storeAvatar1(file));
 
-    @PostMapping("/employee/admin")
-    public  ResponseEntity<Employee> createAdmin(@Valid @RequestBody Employee employee){
+    employeeService.save(employee);
+    return new ResponseEntity<>(employee, HttpStatus.CREATED);
+}
+    @PostMapping(value = "/employee/admin",produces = MediaType.IMAGE_PNG_VALUE)
+    public  ResponseEntity<Employee> createAdmin(@Valid @ModelAttribute Employee employee,@RequestParam("file") MultipartFile file) throws IOException {
         employee.setPassword(passwordEncoder.encode(employee.getPassword()));
         Role userRole = roleRepository.findByName(RoleName.ROLE_ADMIN)
                 .orElseThrow(() -> new AppException("User Role not set."));
 
         employee.setRoles(Collections.singleton(userRole));
+        employee.setAvatar(employeeService.storeAvatar1(file));
 
         employeeService.save(employee);
         return new ResponseEntity<>(employee, HttpStatus.CREATED);
+    }
+
+    //fix error 406: [org.springframework.web.HttpMediaTypeNotAcceptableException: Could not find acceptable representation
+    @ResponseBody
+    @ExceptionHandler(HttpMediaTypeNotAcceptableException.class)
+    public String handleHttpMediaTypeNotAcceptableException() {
+        return "acceptable MIME type:" + MediaType.APPLICATION_JSON_VALUE;
     }
 
     @PutMapping("/employee/{id}")

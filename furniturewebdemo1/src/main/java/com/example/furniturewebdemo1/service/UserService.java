@@ -14,4 +14,5 @@ public interface UserService {
     void delete(User user);
 
     String storeAvatar(MultipartFile file, long id) throws IOException;
+    String storeAvatar1(MultipartFile file) throws IOException;
 }

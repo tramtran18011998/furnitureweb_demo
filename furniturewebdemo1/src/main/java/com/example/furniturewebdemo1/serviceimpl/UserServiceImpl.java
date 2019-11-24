@@ -62,4 +62,21 @@ public class UserServiceImpl implements UserService {
         }
         return file.getOriginalFilename();
     }
+
+    @Override
+    public String storeAvatar1(MultipartFile file) throws IOException {
+        String fileName = StringUtils.cleanPath(file.getOriginalFilename());
+        File convertFile = new File("uploads/customers/"+fileName);
+        convertFile.createNewFile();
+
+        try (FileOutputStream fout = new FileOutputStream(convertFile))
+        {
+            fout.write(file.getBytes());
+        }
+        catch (Exception exe)
+        {
+            exe.printStackTrace();
+        }
+        return file.getOriginalFilename();
+    }
 }
